@@ -48,8 +48,9 @@ void ignite() {
     ulong audioTimeMicros = lround(audioTime * 1000000);
     auto audioTimeMicrosF = static_cast<float>(audioTimeMicros);
     int oldSoundIdx = -1;
-    int oldLed1Idx = -1;
-    int oldLed2Idx = -1;
+    // these represent the smallest index that has not been lit up
+    int oldLed1Idx = 0;
+    int oldLed2Idx = 0;
     ulong time;
     ulong start = micros();
     do {
@@ -64,14 +65,12 @@ void ignite() {
             float ledProgressUnclamped = elapsedTime / static_cast<float>(igniteTime * 1000);
             float ledProgress = constrain(ledProgressUnclamped, 0.0f, 1.0f);
             int led1Idx = LED_IDX_START + lround(ledProgress * static_cast<float>(LED_IDX_MIDDLE - LED_IDX_START));
-            if (led1Idx > oldLed1Idx) {
-                oldLed1Idx = led1Idx;
-                leds.setPixelColor(led1Idx, color);
+            while (led1Idx >= oldLed1Idx) {
+                leds.setPixelColor(oldLed1Idx++, color);
             }
             int led2Idx = LED_IDX_END - lround(ledProgress * static_cast<float>(LED_IDX_END - LED_IDX_MIDDLE));
-            if (led2Idx > oldLed2Idx) {
-                oldLed2Idx = led2Idx;
-                leds.setPixelColor(led2Idx, color);
+            while (led2Idx >= oldLed2Idx) {
+                leds.setPixelColor(oldLed2Idx++, color);
             }
         }
     } while (time - start < audioTimeMicros);
