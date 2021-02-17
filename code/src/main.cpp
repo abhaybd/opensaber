@@ -16,10 +16,6 @@
 
 #define arrLen(x) (sizeof(x) / sizeof((x)[0]))
 
-const uint igniteTime = 1000; // in millis
-
-const int ignitionSoundFreq = 6000;
-
 Adafruit_MPU6050 mpu;
 Adafruit_MPU6050_Gyro gyro(&mpu);
 Adafruit_NeoPixel leds(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);

@@ -1,6 +1,8 @@
 #ifndef CODE_IGNITIONSOUND_H
 #define CODE_IGNITIONSOUND_H
 
+const uint igniteTime = 1000; // in millis
+const uint ignitionSoundFreq = 6000; // in Hz
 // this is a 8bit sound file stored in flash storage
 const uint8_t ignitionSound[] = {129, 123, 122, 127, 118, 128, 121, 125, 129, 123, 134, 127, 131, 127, 130, 129, 129,
                                  128, 129, 130, 127, 130, 126, 130, 129, 130, 132, 129, 133, 132, 131, 134, 131, 133,
