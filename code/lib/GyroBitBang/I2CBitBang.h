@@ -7,11 +7,11 @@
 class I2CBitBang {
 public:
     I2CBitBang(uint8_t sdaPin, uint8_t sclPin);
-private:
     void start();
     void stop();
     bool write(uint8_t data);
     uint8_t read(bool ack);
+private:
     bool sclRead();
     bool sdaRead();
     void sdaOn();
