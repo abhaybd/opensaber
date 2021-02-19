@@ -19,6 +19,7 @@ public:
     Gyro(uint8_t address, uint8_t sdaPin, uint8_t sclPin);
     ~Gyro();
     void get(RotVel &vel);
+    void setBias(const RotVel &vel);
     void setScale(GyroScale gs);
     void begin();
     void end();
@@ -28,6 +29,7 @@ private:
     uint8_t address;
     uint8_t sdaPin, sclPin;
     GyroScale scale;
+    RotVel bias;
 
     void registerWrite(uint8_t reg, uint8_t data);
     void registerWrite(uint8_t reg, uint8_t *data, uint len);
