@@ -2,6 +2,8 @@
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_NeoPixel.h>
 
+#include "I2CBitBang.h"
+
 // import animation sounds
 #include "IgnitionSound.h"
 
