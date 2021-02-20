@@ -2,7 +2,7 @@
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_NeoPixel.h>
 
-#include "Gyro.h"
+#include "MPU6050_Gyro.h"
 
 // import animation sounds
 #include "IgnitionSound.h"
