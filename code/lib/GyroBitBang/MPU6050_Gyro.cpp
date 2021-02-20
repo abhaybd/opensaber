@@ -46,6 +46,7 @@ void MPU6050_Gyro::begin() {
     // disable accelerometer and temp sensor
     registerWriteBits(PWR_MGMT_1_REG, 1 << 3, 3, 1);
     registerWriteBits(PWR_MGMT_2_REG, 0b111 << 3, 3, 3);
+    delay(100);
 }
 
 void MPU6050_Gyro::end() {

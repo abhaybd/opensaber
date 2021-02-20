@@ -18,28 +18,83 @@ enum FilterBandwidth {
     HZ_256, HZ_188, HZ_98, HZ_42, HZ_20, HZ_10, HZ_5
 };
 
+/**
+ * Represents a MPU6050 gyro-only sensor. Technically, this sensor also has an accelerometer and temp sensor,
+ * but those are disabled, and this only exposes gyro functionality.
+ */
 class MPU6050_Gyro {
 public:
+    /**
+     * Create a new MPU6050 gyro-only sensor.
+     *
+     * @param address The I2C address of the sensor.
+     * @param sdaPin The GPIO pin to be used as SDA.
+     * @param sclPin The GPIO pin to be used as SCL.
+     */
     MPU6050_Gyro(uint8_t address, uint8_t sdaPin, uint8_t sclPin);
 
     ~MPU6050_Gyro();
 
+    /**
+     * Initializes the gyro sensor. This takes a while. Do NOT call multiple times without calling end() in the middle.
+     */
     void begin();
 
+    /**
+     * CLeans up and releases the resources associated with this gyro sensor. Calling any member functions that use
+     * the sensor after calling this method is UB.
+     */
     void end();
 
+    /**
+     * Resets the configurations of the gyro. This takes a while, so don't call in a loop.
+     */
     void resetConfig();
 
+    /**
+     * Checks if the sensor has been initialized.
+     *
+     * @return True if the sensor is ready and calling the sensor functions is allowed.
+     */
     bool isInitialized();
 
+    /**
+     * Gets the rotational velocity of the gyro.
+     *
+     * @param vel The rotational velocity, in degrees per second.
+     */
     void get(RotVel &vel);
 
+    /**
+     * Configure the bias of the sensor. This value is subtracted from the sensor readings before being returned
+     * by get().
+     *
+     * @param vel The bias of the gyro sensor.
+     */
     void setBias(const RotVel &vel);
 
+    /**
+     * Configure the scale of the sensor. Changes the range of values returned in get(). Higher ranges means less
+     * precision.
+     *
+     * @param gs The new gyro scale.
+     */
     void setScale(GyroScale gs);
 
+    /**
+     * Configures the sample rate of the gyro sensor by changing the divisor.
+     * sampleRate = gyroRate / (1 + divisor)
+     *
+     * @param divisor The new divisor.
+     */
     void setSampleRateDivisor(uint8_t divisor);
 
+    /**
+     * Configures the low-pass filter bandwidth. The bandwidths are slightly different for the accel and gyro, but
+     * this is a gyro-only, so it's all good.
+     *
+     * @param bandwidth The new bandwidth to set.
+     */
     void setGyroFilterBandwidth(FilterBandwidth bandwidth);
 
 private:
