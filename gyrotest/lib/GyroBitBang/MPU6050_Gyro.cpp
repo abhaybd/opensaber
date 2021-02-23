@@ -51,9 +51,9 @@ bool MPU6050_Gyro::begin() {
     delay(100);
 
     // disable accelerometer and temp sensor
-//    registerWriteBits(PWR_MGMT_1_REG, 1 << 3, 3, 1);
-//    registerWriteBits(PWR_MGMT_2_REG, 0b111 << 3, 3, 3);
-//    delay(100);
+    registerWriteBits(PWR_MGMT_1_REG, 1 << 3, 3, 1);
+    registerWriteBits(PWR_MGMT_2_REG, 0b111 << 3, 3, 3);
+    delay(100);
     return true;
 }
 
@@ -70,6 +70,9 @@ void MPU6050_Gyro::resetConfig() {
     delay(100);
     registerWriteBits(SIG_PATH_RST_REG, 0b111, 0, 3);
     delay(100);
+
+    // disable sleep mode
+    registerWriteBits(PWR_MGMT_1_REG, 0, 6, 1);
 }
 
 uint8_t MPU6050_Gyro::whoAmI() {
@@ -80,15 +83,10 @@ uint8_t MPU6050_Gyro::whoAmI() {
 void MPU6050_Gyro::get(RotVel &vel) {
     uint8_t data[6];
     registerRead(GYRO_DATA_REG, data, 6);
-    for (uint8_t d : data) {
-        Serial.print(d);
-        Serial.print(", ");
-    }
-    Serial.println();
-    int16_t x, y, z;
-    memcpy(&x, &data[0], 2);
-    memcpy(&y, &data[2], 2);
-    memcpy(&z, &data[4], 2);
+    // memcpy won't work because data is big-endian but processor is little-endian
+    int16_t x = (data[0] << 8) | data[1];
+    int16_t y = (data[2] << 8) | data[3];
+    int16_t z = (data[4] << 8) | data[5];
     float scaleFactor = scaleFactors[gyroScale];
     vel.x = static_cast<float>(x) / scaleFactor - bias.x;
     vel.y = static_cast<float>(y) / scaleFactor - bias.y;

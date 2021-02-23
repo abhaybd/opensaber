@@ -6,6 +6,10 @@ MPU6050_Gyro gyro(false, 0, 2);
 [[noreturn]] void foo() {
     Serial.println("Starting up!");
     bool b = gyro.begin();
+    if (!b) {
+        Serial.println("Failed to boot up!");
+        while(true);
+    }
     RotVel vel{};
     while (true) {
         ulong start = micros();

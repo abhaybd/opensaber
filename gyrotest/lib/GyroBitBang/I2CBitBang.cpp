@@ -56,7 +56,7 @@ bool I2CBitBang::write(uint8_t data) {
 }
 
 uint8_t I2CBitBang::read(bool ack) {
-    uint8_t data;
+    uint8_t data = 0;
     sdaOn();
     for (uint8_t i = 0; i < 8; i++) {
         data <<= 1; // shift left so we can write a new bit
