@@ -27,18 +27,18 @@ public:
     /**
      * Create a new MPU6050 gyro-only sensor.
      *
-     * @param address The I2C address of the sensor.
+     * @param addrLastBit The last bit of the I2C address, as determined by the logic level of the appropriate pin.
      * @param sdaPin The GPIO pin to be used as SDA.
      * @param sclPin The GPIO pin to be used as SCL.
      */
-    MPU6050_Gyro(uint8_t address, uint8_t sdaPin, uint8_t sclPin);
+    MPU6050_Gyro(bool addrLastBit, uint8_t sdaPin, uint8_t sclPin);
 
     ~MPU6050_Gyro();
 
     /**
      * Initializes the gyro sensor. This takes a while. Do NOT call multiple times without calling end() in the middle.
      */
-    void begin();
+    bool begin();
 
     /**
      * CLeans up and releases the resources associated with this gyro sensor. Calling any member functions that use
@@ -96,6 +96,8 @@ public:
      * @param bandwidth The new bandwidth to set.
      */
     void setGyroFilterBandwidth(FilterBandwidth bandwidth);
+
+    uint8_t whoAmI();
 
 private:
     I2CBitBang *wire;

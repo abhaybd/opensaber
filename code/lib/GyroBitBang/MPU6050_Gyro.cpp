@@ -10,12 +10,13 @@
 #define SIG_PATH_RST_REG 104
 #define PWR_MGMT_1_REG 107
 #define PWR_MGMT_2_REG 108
+#define WHOAMI_REG 117
 
-
+constexpr uint8_t defaultAddr = 0b1101000;
 const float scaleFactors[] = {powf(2, 15) / 250.0f, powf(2, 15) / 500.0f, powf(2, 15) / 1000.0f, powf(2, 15) / 2000.0f};
 
-MPU6050_Gyro::MPU6050_Gyro(uint8_t address, uint8_t sdaPin, uint8_t sclPin)
-        : wire(nullptr), address(address << 1), sdaPin(sdaPin), sclPin(sclPin), // note that address is shifted
+MPU6050_Gyro::MPU6050_Gyro(bool addrLastBit, uint8_t sdaPin, uint8_t sclPin)
+        : wire(nullptr), address(defaultAddr | addrLastBit), sdaPin(sdaPin), sclPin(sclPin),
           gyroScale(SCALE_250_DPS), bias({0, 0, 0}) {
 
 }
@@ -30,8 +31,13 @@ bool MPU6050_Gyro::isInitialized() {
     return wire != nullptr;
 }
 
-void MPU6050_Gyro::begin() {
+bool MPU6050_Gyro::begin() {
     wire = new I2CBitBang(sdaPin, sclPin);
+
+    uint8_t mask = ~1; // ignore last bit
+    if ((whoAmI() & mask) != (address & mask)) {
+        return false;
+    }
 
     resetConfig();
 
@@ -47,6 +53,7 @@ void MPU6050_Gyro::begin() {
     registerWriteBits(PWR_MGMT_1_REG, 1 << 3, 3, 1);
     registerWriteBits(PWR_MGMT_2_REG, 0b111 << 3, 3, 3);
     delay(100);
+    return true;
 }
 
 void MPU6050_Gyro::end() {
@@ -62,6 +69,11 @@ void MPU6050_Gyro::resetConfig() {
     delay(100);
     registerWriteBits(SIG_PATH_RST_REG, 0b111, 0, 3);
     delay(100);
+}
+
+uint8_t MPU6050_Gyro::whoAmI() {
+    uint8_t addr = registerRead(WHOAMI_REG);
+    return addr;
 }
 
 void MPU6050_Gyro::get(RotVel &vel) {
