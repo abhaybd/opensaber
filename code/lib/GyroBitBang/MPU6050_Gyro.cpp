@@ -16,8 +16,8 @@ constexpr uint8_t defaultAddr = 0b1101000;
 const float scaleFactors[] = {powf(2, 15) / 250.0f, powf(2, 15) / 500.0f, powf(2, 15) / 1000.0f, powf(2, 15) / 2000.0f};
 
 MPU6050_Gyro::MPU6050_Gyro(bool addrLastBit, uint8_t sdaPin, uint8_t sclPin)
-        : wire(nullptr), address(defaultAddr | addrLastBit), sdaPin(sdaPin), sclPin(sclPin),
-          gyroScale(SCALE_250_DPS), bias({0, 0, 0}) {
+        : wire(nullptr), address((defaultAddr | addrLastBit) << 1), // note that the address is shifted left one bit
+          sdaPin(sdaPin), sclPin(sclPin), gyroScale(SCALE_250_DPS), bias({0, 0, 0}) {
 
 }
 
@@ -35,7 +35,8 @@ bool MPU6050_Gyro::begin() {
     wire = new I2CBitBang(sdaPin, sclPin);
 
     uint8_t mask = ~1; // ignore last bit
-    if ((whoAmI() & mask) != (address & mask)) {
+    uint8_t whoami = whoAmI();
+    if ((whoami & mask) != ((address >> 1) & mask)) {
         return false;
     }
 

@@ -97,6 +97,12 @@ public:
      */
     void setGyroFilterBandwidth(FilterBandwidth bandwidth);
 
+    /**
+     * Returns the I2C base address for sanity checks.
+     *
+     * @return The base I2C address, or 0b1101000 as defined by the spec sheet. In reality, the address' last bit
+     * may be a 0 or a 1, but the returned will always be a 0.
+     */
     uint8_t whoAmI();
 
 private:

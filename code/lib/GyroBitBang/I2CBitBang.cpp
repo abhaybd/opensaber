@@ -34,7 +34,7 @@ void I2CBitBang::stop() {
 }
 
 bool I2CBitBang::write(uint8_t data) {
-    const int mask = 0b1000000;
+    const uint8_t mask = 1 << 7;
     for (int i = 0; i < 8; i++) {
         // transmit the 8th bit
         if ((data & mask) != 0) {
