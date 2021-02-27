@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <Adafruit_MPU6050.h>
 #include <Adafruit_NeoPixel.h>
 
 #include "MPU6050_Gyro.h"
@@ -19,8 +18,7 @@
 #define arrLen(x) (sizeof(x) / sizeof((x)[0]))
 #define US_PER_SEC 1000000
 
-Adafruit_MPU6050 mpu;
-Adafruit_MPU6050_Gyro gyro(&mpu);
+MPU6050_Gyro gyro(false, 0, 2);
 Adafruit_NeoPixel leds(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 int color = 0x80;
 
@@ -41,10 +39,10 @@ int color = 0x80;
 }
 
 float getRotVel() {
-    sensors_event_t e;
-    gyro.getEvent(&e);
+    RotVel rotVel{};
+    gyro.get(rotVel);
     // magnitude of axis-angle representation
-    return hypotf(e.gyro.x, e.gyro.y);
+    return hypotf(rotVel.x, rotVel.y); // TODO: might have to change these axes depending on the gyro orientation
 }
 
 uint trailingZeros(uint n) {
@@ -106,7 +104,7 @@ void ignite() {
 }
 
 void setup() {
-    if (!mpu.begin()) {
+    if (!gyro.begin()) {
         Serial.println("Failed to find gyro!");
         end();
     }
