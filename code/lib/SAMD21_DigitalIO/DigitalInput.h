@@ -2,7 +2,7 @@
 #define CODE_DIGITALINPUT_H
 
 
-#include "Pin.h"
+#include "DigitalPin.h"
 
 /**
  * A class encapsulating a digital input and some debouncing logic. Uses port manipulation for faster IO,
@@ -42,7 +42,7 @@ public:
     void setDebouncePeriod(uint newPeriod);
 
 private:
-    Pin pin;
+    DigitalPin pin;
     ulong lastChangeMillis;
     uint debouncePeriod;
     bool currState;

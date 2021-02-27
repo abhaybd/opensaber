@@ -2,7 +2,7 @@
 #define CODE_I2CBITBANG_H
 
 #include <Arduino.h>
-#include <Pin.h>
+#include <DigitalPin.h>
 
 
 class I2CBitBang {
@@ -15,7 +15,7 @@ public:
 private:
     void pulseScl();
     static void waitCycle();
-    Pin sda, scl;
+    DigitalPin sda, scl;
 };
 
 

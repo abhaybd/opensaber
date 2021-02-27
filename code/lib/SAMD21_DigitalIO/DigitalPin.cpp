@@ -1,16 +1,16 @@
-#include "Pin.h"
+#include "DigitalPin.h"
 
-Pin::Pin(int pin, int mode)
+DigitalPin::DigitalPin(int pin, int mode)
         : port(g_APinDescription[pin].ulPort), pinDescription(g_APinDescription[pin].ulPin), pin(pin), mode(mode) {
     pinMode(pin, mode);
 }
 
-bool Pin::read() const {
+bool DigitalPin::read() const {
     uint32_t pinMask = 1ul << pinDescription;
     return (PORT->Group[port].IN.reg & pinMask) != 0;
 }
 
-void Pin::write(bool value) const {
+void DigitalPin::write(bool value) const {
     if (value) {
         on();
     } else {
@@ -18,30 +18,30 @@ void Pin::write(bool value) const {
     }
 }
 
-void Pin::on() const {
+void DigitalPin::on() const {
     uint32_t pinMask = 1ul << pinDescription;
     PORT->Group[port].OUTSET.reg = pinMask;
 }
 
-void Pin::off() const {
+void DigitalPin::off() const {
     uint32_t pinMask = 1ul << pinDescription;
     PORT->Group[port].OUTCLR.reg = pinMask;
 }
 
-int Pin::getPin() const {
+int DigitalPin::getPin() const {
     return pin;
 }
 
-int Pin::getMode() const {
+int DigitalPin::getMode() const {
     return mode;
 }
 
-void Pin::setMode(int newMode) {
+void DigitalPin::setMode(int newMode) {
     mode = newMode;
     pinMode(pin, newMode);
 }
 
-void Pin::write(int pin, bool value) {
+void DigitalPin::write(int pin, bool value) {
     EPortType port = g_APinDescription[pin].ulPort;
     int pinDescription = g_APinDescription[pin].ulPin;
     uint32_t pinMask = 1ul << pinDescription;
@@ -52,7 +52,7 @@ void Pin::write(int pin, bool value) {
     }
 }
 
-bool Pin::read(int pin) {
+bool DigitalPin::read(int pin) {
     EPortType port = g_APinDescription[pin].ulPort;
     int pinDescription = g_APinDescription[pin].ulPin;
     uint32_t pinMask = 1ul << pinDescription;
