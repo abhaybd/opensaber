@@ -47,18 +47,6 @@ float getRotVel() {
     return hypotf(rotVel.x, rotVel.y); // TODO: might have to change these axes depending on the gyro orientation
 }
 
-uint trailingZeros(uint n) {
-    uint c = 32;
-    n &= -signed(n);
-    if (n) c--;
-    if (n & 0x0000FFFF) c -= 16;
-    if (n & 0x00FF00FF) c -= 8;
-    if (n & 0x0F0F0F0F) c -= 4;
-    if (n & 0x33333333) c -= 2;
-    if (n & 0x55555555) c -= 1;
-    return c;
-}
-
 void writeAudio(uint value, int precision = 8) {
     analogWrite(AUDIO_PIN, value << (DAC_PRECISION - precision));
 }
@@ -127,6 +115,8 @@ void setup() {
     delay(1000);
     Serial.println("Igniting now!");
     ignite(); // synchronously run the ignition routine
+
+    // just for development, to save power
     leds.clear();
     leds.show();
 }
