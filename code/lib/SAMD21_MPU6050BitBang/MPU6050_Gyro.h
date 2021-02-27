@@ -2,7 +2,7 @@
 #define CODE_MPU6050_GYRO_H
 
 #include <Arduino.h>
-#include "I2CBitBang.h"
+#include <I2CBitBang.h>
 
 struct RotVel {
     float x;
