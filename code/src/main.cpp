@@ -1,12 +1,13 @@
 #include <Arduino.h>
-#include <Adafruit_NeoPixel.h>
+#include <Adafruit_NeoPixel_ZeroDMA.h>
 
 #include "MPU6050_Gyro.h"
 
 // import animation sounds
 #include "IgnitionSound.h"
 
-#define LED_PIN 8
+// dma requires pin 4
+#define LED_PIN 4
 #define NUM_LEDS 60
 #define LED_IDX_START 0
 #define LED_IDX_MIDDLE 30
@@ -19,7 +20,7 @@
 #define US_PER_SEC 1000000
 
 MPU6050_Gyro gyro(false, 0, 2);
-Adafruit_NeoPixel leds(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel_ZeroDMA leds(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 int color = 0x80;
 
 [[noreturn]] void end(bool flashError=true) {
@@ -95,7 +96,6 @@ void ignite() {
                 shouldShow = true;
             }
             if (shouldShow) {
-                // TODO: this has weird stuff with interrupts that will make time disappear. Switch to FastLED or DMA?
                 leds.show();
             }
         }
