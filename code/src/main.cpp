@@ -69,8 +69,8 @@ void ignite() {
     int rightShift = trailingZeros(igniteTime); // the amount to rightshift that is equivalent to dividing by igniteTime
     int soundIdx = -1; // the last sound sample that has been played
     // these represent the smallest index that has not been lit up
-    int oldLed1Idx = 0;
-    int oldLed2Idx = 0;
+    uint oldLed1Idx = 0;
+    uint oldLed2Idx = 0;
     ulong time = micros();
     ulong start = time;
 
