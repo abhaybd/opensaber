@@ -101,10 +101,6 @@ void MPU6050_Gyro::setScale(GyroScale gs) {
     gyroScale = gs;
     uint8_t data = (gs & 0b11) << 3; // bits 4 and 3 tell the data, everything else is zero
     registerWriteBits(GYRO_CONFIG_REG, data, 3, 2);
-
-    uint8_t d = registerRead(GYRO_CONFIG_REG);
-    Serial.print("Scale is correct: ");
-    Serial.println(((d >> 3) & 0b11) == gs);
 }
 
 void MPU6050_Gyro::setSampleRateDivisor(uint8_t divisor) {
