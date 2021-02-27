@@ -8,20 +8,21 @@
 
 // dma requires pin 4
 #define LED_PIN 4
-#define NUM_LEDS 60
+#define NUM_LEDS 30
+// currently using 30 leds, not doubled
 #define LED_IDX_START 0
-#define LED_IDX_MIDDLE 30
-#define LED_IDX_END 59
+#define LED_IDX_MIDDLE 29
+#define LED_IDX_END 29
 
 #define AUDIO_PIN 1
 #define DAC_PRECISION 10
 
 #define arrLen(x) (sizeof(x) / sizeof((x)[0]))
-#define US_PER_SEC 1000000
+#define US_PER_SEC 1000000ull
 
 MPU6050_Gyro gyro(false, 0, 2);
 Adafruit_NeoPixel_ZeroDMA leds(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
-int color = 0x80;
+int color = 0x800000;
 
 [[noreturn]] void end(bool flashError=true) {
     leds.clear();
@@ -64,35 +65,37 @@ void writeAudio(uint value, int precision = 8) {
 
 void ignite() {
     // ignite leds from bottom to top
-    uint soundLen = arrLen(ignitionSound);
+    unsigned long long soundLen = arrLen(ignitionSound);
     uint soundTimeMicros = soundLen * US_PER_SEC / ignitionSoundFreq;
-    int rightShift = trailingZeros(igniteTime); // the amount to rightshift that is equivalent to dividing by igniteTime
     int soundIdx = -1; // the last sound sample that has been played
     // these represent the smallest index that has not been lit up
-    uint oldLed1Idx = 0;
-    uint oldLed2Idx = 0;
+    uint oldLed1Idx = 0; // counts up
+    uint oldLed2Idx = LED_IDX_END; // counts down
     ulong time = micros();
     ulong start = time;
 
     while (time - start < soundTimeMicros) {
         uint elapsedTime = time - start;
-        uint newSoundIdx = elapsedTime * ignitionSoundFreq / US_PER_SEC;
+        // the intermediate cast to ull is to prevent overflow from multiplication
+        int newSoundIdx = static_cast<int>(static_cast<unsigned long long>(elapsedTime) * ignitionSoundFreq / US_PER_SEC);
         if (newSoundIdx > soundIdx) {
             soundIdx = newSoundIdx;
             writeAudio(ignitionSound[soundIdx]);
 
             // write to leds
-            // uses right shift because that's faster than integer division by powers of two
-            uint led1Idx = LED_IDX_START + ((elapsedTime * (LED_IDX_MIDDLE - LED_IDX_START)) >> rightShift);
-            uint led2Idx = LED_IDX_END - ((elapsedTime * (LED_IDX_END - LED_IDX_MIDDLE)) >> rightShift);
+            uint elapsedTimeLed = constrain(elapsedTime, 0, igniteTime);
+            uint led1Idx = LED_IDX_START + ((elapsedTimeLed * (LED_IDX_MIDDLE - LED_IDX_START)) / igniteTime);
+            uint led2Idx = LED_IDX_END - ((elapsedTimeLed * (LED_IDX_END - LED_IDX_MIDDLE)) / igniteTime);
 
             bool shouldShow = false;
+            // led 1 counts up from START
             while (oldLed1Idx <= led1Idx) {
                 leds.setPixelColor(oldLed1Idx++, color);
                 shouldShow = true;
             }
-            while (oldLed2Idx <= led2Idx) {
-                leds.setPixelColor(oldLed2Idx++, color);
+            // led 2 counts down from END
+            while (oldLed2Idx >= led2Idx) {
+                leds.setPixelColor(oldLed2Idx--, color);
                 shouldShow = true;
             }
             if (shouldShow) {
@@ -104,6 +107,7 @@ void ignite() {
 }
 
 void setup() {
+//    while (!Serial); // for debugging
     if (!gyro.begin()) {
         Serial.println("Failed to find gyro!");
         end();
@@ -111,7 +115,11 @@ void setup() {
     leds.begin();
     leds.clear();
     leds.show();
+    delay(1000);
+    Serial.println("Igniting now!");
     ignite(); // synchronously run the ignition routine
+    leds.clear();
+    leds.show();
 }
 
 void loop() {
