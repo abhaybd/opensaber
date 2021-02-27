@@ -74,12 +74,15 @@ void ignite() {
     ulong time = micros();
     ulong start = time;
 
+    int numPlayed = 0;
+
     while (time - start < soundTimeMicros) {
         uint elapsedTime = time - start;
         // the intermediate cast to ull is to prevent overflow from multiplication
         int newSoundIdx = static_cast<int>(static_cast<unsigned long long>(elapsedTime) * ignitionSoundFreq / US_PER_SEC);
         if (newSoundIdx > soundIdx) {
             soundIdx = newSoundIdx;
+            numPlayed++;
             writeAudio(ignitionSound[soundIdx]);
 
             // write to leds
@@ -104,6 +107,12 @@ void ignite() {
         }
         time = micros();
     }
+
+    // verify that all audio samples were played
+    Serial.print("Played ");
+    Serial.print(numPlayed);
+    Serial.print(" audio samples out of ");
+    Serial.println(static_cast<int>(soundLen));
 }
 
 void setup() {
