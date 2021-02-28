@@ -54,11 +54,11 @@ constexpr uint arrLen(T(&)[size]) {
             int errorColor = 0x800000;
             leds.fill(errorColor);
             leds.show();
-
             delay(1000);
 
             leds.clear();
             leds.show();
+            delay(1000);
         }
     }
 }
@@ -165,14 +165,14 @@ void setup() {
 #ifdef DEBUG
     while (!Serial); // for debugging
 #endif
-    if (!gyro.begin()) {
-        Serial.println("Failed to find gyro!");
-        end();
-    }
     leds.begin();
     leds.setBrightness(baselineBrightness);
     leds.clear();
     leds.show();
+    if (!gyro.begin()) {
+        Serial.println("Failed to find gyro!");
+        end();
+    }
     delay(1000);
     Serial.println("Igniting now!");
     ignite(); // synchronously run the ignition routine
