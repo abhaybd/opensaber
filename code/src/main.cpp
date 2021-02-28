@@ -1,31 +1,31 @@
 #include <Arduino.h>
-#include <cmath>
-
-#undef roundf
-
 #include <Adafruit_NeoPixel_ZeroDMA.h>
 
+#include <cmath>
+
 #include "MPU6050_Gyro.h"
+
+#undef roundf
 
 // import animation sounds
 #include "IgnitionSound.h"
 #include "HumSound.h"
 
-// dma requires pin 4
-#define LED_PIN 4
-#define NUM_LEDS 30
-// currently using 30 leds, not doubled
-#define LED_IDX_START 0
-#define LED_IDX_MIDDLE 29
-#define LED_IDX_END 29
-
-#define AUDIO_PIN 1
-#define DAC_PRECISION 10
-
-#define arrLen(x) (sizeof(x) / sizeof((x)[0]))
-#define US_PER_SEC 1000000ull
-
 #define DEBUG
+
+// dma requires pin 4
+constexpr int LED_PIN = 4;
+// currently using 30 leds, not doubled
+constexpr int NUM_LEDS = 30;
+constexpr int LED_IDX_START = 0;
+constexpr int LED_IDX_MIDDLE = 29;
+
+constexpr int LED_IDX_END = 29;
+constexpr int AUDIO_PIN = 1;
+
+constexpr int DAC_PRECISION = 10;
+
+constexpr uint64_t US_PER_SEC = 1000000ull;
 
 MPU6050_Gyro gyro(false, 0, 2);
 Adafruit_NeoPixel_ZeroDMA leds(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
@@ -37,9 +37,14 @@ constexpr uint8_t maxBrightness = 255;
 constexpr ulong gyroUpdatePeriod = 50000; // microseconds
 constexpr float maxRotVel = 1000;
 
-template <typename T>
+template<typename T>
 T clamp(T val, T low, T high) {
     return val < low ? low : (val > high ? high : val);
+}
+
+template<typename T, int size>
+constexpr uint arrLen(T(&)[size]) {
+    return size;
 }
 
 [[noreturn]] void end(bool flashError = true) {
