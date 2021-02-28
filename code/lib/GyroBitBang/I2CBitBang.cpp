@@ -5,26 +5,31 @@
 // https://forum.arduino.cc/index.php?topic=531268.0
 
 I2CBitBang::I2CBitBang(uint8_t sdaPin, uint8_t sclPin)
-        : sda(sdaPin, OUTPUT), scl(sclPin, OUTPUT) {
+        : sdaPin(sdaPin),
+          sclPin(sclPin),
+          sdaPort(g_APinDescription[sdaPin].ulPort),
+          sclPort(g_APinDescription[sclPin].ulPort) {
+    pinMode(sclPin, OUTPUT);
+    pinMode(sdaPin, OUTPUT);
 }
 
 void I2CBitBang::start() {
-    sda.on();
+    sdaOn();
     waitCycle();
-    scl.on();
+    sclOn();
     waitCycle();
-    sda.off();
+    sdaOff();
     waitCycle();
-    scl.off();
+    sclOff();
     waitCycle();
 }
 
 void I2CBitBang::stop() {
-    sda.off();
+    sdaOff();
     waitCycle();
-    scl.on();
+    sclOn();
     waitCycle();
-    sda.on();
+    sdaOn();
     waitCycle();
 }
 
@@ -33,50 +38,80 @@ bool I2CBitBang::write(uint8_t data) {
     for (int i = 0; i < 8; i++) {
         // transmit the 8th bit
         if ((data & mask) != 0) {
-            sda.on();
+            sdaOn();
         } else {
-            sda.off();
+            sdaOff();
         }
         data <<= 1; // shift left by one
         waitCycle();
         pulseScl();
         waitCycle();
     }
-    sda.on();
-    scl.on();
+    sdaOn();
+    sclOn();
     waitCycle();
-    bool ack = !sda.read();
-    scl.off();
+    bool ack = !sdaRead();
+    sclOff();
     return ack;
 }
 
 uint8_t I2CBitBang::read(bool ack) {
     uint8_t data = 0;
-    sda.on();
+    sdaOn();
     for (uint8_t i = 0; i < 8; i++) {
         data <<= 1; // shift left so we can write a new bit
         do {
-            scl.on();
-        } while (!scl.read()); // stretch that clock
+            sclOn();
+        } while (!sclRead()); // stretch that clock
         waitCycle();
-        data |= sda.read();
+        data |= sdaRead();
         waitCycle();
-        scl.off();
+        sclOff();
     }
     if (ack) {
-        sda.off();
+        sdaOff();
     } else {
-        sda.on();
+        sdaOn();
     }
     pulseScl();
-    sda.on();
+    sdaOn();
     return data;
 }
 
+bool I2CBitBang::sdaRead() {
+    uint32_t pinMask = 1ul << g_APinDescription[sdaPin].ulPin;
+    return (PORT->Group[sdaPort].IN.reg & pinMask) != 0;
+}
+
+void I2CBitBang::sdaOn() {
+    uint32_t pinMask = 1ul << g_APinDescription[sdaPin].ulPin;
+    PORT->Group[sdaPort].OUTSET.reg = pinMask;
+}
+
+void I2CBitBang::sdaOff() {
+    uint32_t pinMask = 1ul << g_APinDescription[sdaPin].ulPin;
+    PORT->Group[sdaPort].OUTCLR.reg = pinMask;
+}
+
+bool I2CBitBang::sclRead() {
+    uint32_t pinMask = 1ul << g_APinDescription[sclPin].ulPin;
+    return (PORT->Group[sclPort].IN.reg & pinMask) != 0;
+}
+
+void I2CBitBang::sclOn() {
+    uint32_t pinMask = 1ul << g_APinDescription[sclPin].ulPin;
+    PORT->Group[sclPort].OUTSET.reg = pinMask;
+}
+
+void I2CBitBang::sclOff() {
+    uint32_t pinMask = 1ul << g_APinDescription[sclPin].ulPin;
+    PORT->Group[sclPort].OUTCLR.reg = pinMask;
+}
+
 void I2CBitBang::pulseScl() {
-    scl.on();
+    sclOn();
     waitCycle();
-    scl.off();
+    sclOff();
 }
 
 void I2CBitBang::waitCycle() {

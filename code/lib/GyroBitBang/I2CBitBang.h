@@ -2,7 +2,6 @@
 #define CODE_I2CBITBANG_H
 
 #include <Arduino.h>
-#include <DigitalPin.h>
 
 
 class I2CBitBang {
@@ -13,9 +12,16 @@ public:
     bool write(uint8_t data);
     uint8_t read(bool ack);
 private:
+    bool sclRead();
+    bool sdaRead();
+    void sdaOn();
+    void sclOn();
+    void sdaOff();
+    void sclOff();
     void pulseScl();
     static void waitCycle();
-    DigitalPin sda, scl;
+    uint8_t sdaPin, sclPin;
+    EPortType sdaPort, sclPort;
 };
 
 
