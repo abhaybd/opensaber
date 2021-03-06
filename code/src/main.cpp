@@ -21,7 +21,7 @@ constexpr int LED_IDX_START = 0;
 constexpr int LED_IDX_MIDDLE = 29;
 
 constexpr int LED_IDX_END = 29;
-constexpr int AUDIO_PIN = 1;
+constexpr int AUDIO_PIN = A0;
 
 constexpr int DAC_PRECISION = 10;
 
@@ -32,10 +32,10 @@ Adafruit_NeoPixel_ZeroDMA leds(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 int color = 0xFF0000;
 
-constexpr uint8_t baselineBrightness = 128;
-constexpr uint8_t maxBrightness = 255;
+constexpr uint8_t baselineBrightness = 128; // unitless, out of 255
+constexpr uint8_t maxBrightness = 255; // unitless, out of 255
 constexpr ulong gyroUpdatePeriod = 50000; // microseconds
-constexpr float maxRotVel = 1000;
+constexpr float maxRotVel = 400; // degrees per second
 
 template<typename T>
 T clamp(T val, T low, T high) {
