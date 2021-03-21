@@ -25,12 +25,15 @@ constexpr int AUDIO_PIN = A0;
 
 constexpr int DAC_PRECISION = 10;
 
+constexpr bool GYRO_OPTIONAL = true;
+
 constexpr uint64_t US_PER_SEC = 1000000ull;
 
 MPU6050_Gyro gyro(false, 0, 2);
 Adafruit_NeoPixel_ZeroDMA leds(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 int color = 0xFF0000;
+bool gyroInitialized = false;
 
 constexpr uint8_t baselineBrightness = 128; // unitless, out of 255
 constexpr uint8_t maxBrightness = 255; // unitless, out of 255
@@ -142,7 +145,7 @@ void lightsaberLoop() {
     ulong time = micros();
 
     static ulong lastGyroUpdate = micros();
-    if (time - lastGyroUpdate >= gyroUpdatePeriod) {
+    if (gyroInitialized && time - lastGyroUpdate >= gyroUpdatePeriod) {
         lastGyroUpdate = time;
         rotVel = clamp(getRotVel(), 0.0f, maxRotVel);
 
@@ -169,19 +172,23 @@ void setup() {
     leds.setBrightness(baselineBrightness);
     leds.clear();
     leds.show();
+    gyroInitialized = true;
     if (!gyro.begin()) {
+        gyroInitialized = false;
         Serial.println("Failed to find gyro!");
-        end();
+        if (!GYRO_OPTIONAL) {
+            end();
+        }
     }
     delay(1000);
     Serial.println("Igniting now!");
     ignite(); // synchronously run the ignition routine
 
-#ifdef DEBUG
-    // just for development, to save power
-    leds.clear();
-    leds.show();
-#endif
+//#ifdef DEBUG
+//    // just for development, to save power
+//    leds.clear();
+//    leds.show();
+//#endif
 }
 
 void loop() {
