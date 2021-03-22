@@ -36,6 +36,7 @@ bool MPU6050_Gyro::begin() {
 
     uint8_t mask = ~1; // ignore last bit
     uint8_t whoami = whoAmI();
+    Serial.println(whoami, 2);
     if ((whoami & mask) != ((address >> 1) & mask)) {
         return false;
     }

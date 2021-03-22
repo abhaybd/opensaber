@@ -11,7 +11,7 @@
 #include "IgnitionSound.h"
 #include "HumSound.h"
 
-#define DEBUG
+//#define DEBUG
 
 // dma requires pin 4
 constexpr int LED_PIN = 4;
@@ -25,7 +25,7 @@ constexpr int AUDIO_PIN = A0;
 
 constexpr int DAC_PRECISION = 10;
 
-constexpr bool GYRO_OPTIONAL = true;
+constexpr bool GYRO_OPTIONAL = false;
 
 constexpr uint64_t US_PER_SEC = 1000000ull;
 
@@ -185,9 +185,10 @@ void setup() {
     ignite(); // synchronously run the ignition routine
 
 //#ifdef DEBUG
-//    // just for development, to save power
-//    leds.clear();
-//    leds.show();
+    // just for development, to save power
+    leds.clear();
+    leds.show();
+    end(false);
 //#endif
 }
 
