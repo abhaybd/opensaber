@@ -19,6 +19,8 @@ Adafruit_DotStar led(1, 7, 8, DOTSTAR_BGR);
     } else {
         led.fill(0x0000FF);
         led.show();
+//        gyro.setGyroFilterBandwidth(FilterBandwidth::HZ_98);
+        gyro.setBias({-3.323f,-0.212f, 1.461});
         RotVel vel{};
         while (true) {
             ulong start = micros();
@@ -34,7 +36,7 @@ Adafruit_DotStar led(1, 7, 8, DOTSTAR_BGR);
             Serial.print("Elapsed: ");
             Serial.print(elapsed);
             Serial.println("us");
-            delay(100);
+            delay(500);
         }
     }
 }
@@ -57,11 +59,12 @@ Adafruit_DotStar led(1, 7, 8, DOTSTAR_BGR);
             delay(500);
             gyro.getEvent(&event);
             Serial.print("GYRO: X=");
-            Serial.print(event.gyro.x);
+            constexpr float degPerRad = 180.0f / M_PI;
+            Serial.print(event.gyro.x * degPerRad);
             Serial.print(", Y=");
-            Serial.print(event.gyro.y);
+            Serial.print(event.gyro.y * degPerRad);
             Serial.print(", Z=");
-            Serial.println(event.gyro.z);
+            Serial.println(event.gyro.z * degPerRad);
         }
     }
 }
@@ -72,12 +75,17 @@ void setup() {
     led.begin();
     led.fill();
     led.show();
-//    while (!Serial);
+
+//    pinMode(0, OUTPUT);
+//    pinMode(2, OUTPUT);
+//    digitalWrite(0, HIGH);
+//    digitalWrite(2, HIGH);
+    while (!Serial);
 
     delay(1000);
 
-    testHWI2C();
-//    testSWI2C();
+//    testHWI2C();
+    testSWI2C();
 }
 
 void loop() {
