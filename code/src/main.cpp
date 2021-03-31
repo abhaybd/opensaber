@@ -79,8 +79,8 @@ void writeAudio(uint value, int precision = 8) {
 
 void ignite() {
     // ignite leds from bottom to top
-    constexpr uint64_t soundLen = arrLen(ignitionSound);
-    uint soundTimeMicros = soundLen * US_PER_SEC / ignitionSoundFreq;
+    constexpr uint64_t soundLen = arrLen(ignitionSound.sound);
+    uint soundTimeMicros = soundLen * US_PER_SEC / ignitionSound.freq;
     int soundIdx = -1; // the last sound sample that has been played
     // these represent the smallest index that has not been lit up
     uint oldLed1Idx = 0; // counts up
@@ -93,11 +93,11 @@ void ignite() {
     while (time - start < soundTimeMicros) {
         uint elapsedTime = time - start;
         // the intermediate cast to ull is to prevent overflow from multiplication
-        int newSoundIdx = static_cast<int>(static_cast<uint64_t>(elapsedTime) * ignitionSoundFreq / US_PER_SEC);
+        int newSoundIdx = static_cast<int>(static_cast<uint64_t>(elapsedTime) * ignitionSound.freq / US_PER_SEC);
         if (newSoundIdx > soundIdx) {
             soundIdx = newSoundIdx;
             numPlayed++;
-            writeAudio(ignitionSound[soundIdx]);
+            writeAudio(ignitionSound.sound[soundIdx]);
 
             // write to leds
             uint elapsedTimeLed = clamp(elapsedTime, 0u, igniteTime);
@@ -155,11 +155,11 @@ void lightsaberLoop() {
     }
 
     static int oldSoundIdx = -1;
-    constexpr uint64_t audioLenMicros = arrLen(humSound) * US_PER_SEC / humSoundFreq;
+    constexpr uint64_t audioLenMicros = arrLen(humSound.sound) * US_PER_SEC / humSound.freq;
     ulong audioTime = (time - start) % audioLenMicros;
-    int soundIdx = static_cast<int>(static_cast<uint64_t>(audioTime) * humSoundFreq / US_PER_SEC);
+    int soundIdx = static_cast<int>(static_cast<uint64_t>(audioTime) * humSound.freq / US_PER_SEC);
     if (soundIdx != oldSoundIdx) {
-        writeAudio(transformAudio(rotVel, humSound[soundIdx]));
+        writeAudio(transformAudio(rotVel, humSound.sound[soundIdx]));
         oldSoundIdx = soundIdx;
     }
 }
