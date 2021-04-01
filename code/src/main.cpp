@@ -70,7 +70,7 @@ float getRotVel() {
     RotVel rotVel{};
     gyro.get(rotVel);
     // magnitude of axis-angle representation
-    return hypotf(rotVel.x, rotVel.y); // TODO: might have to change these axes depending on the gyro orientation
+    return hypotf(rotVel.x, rotVel.z); // we don't care about y rotation, since that's just roll
 }
 
 void writeAudio(uint value, int precision = 8) {
