@@ -186,9 +186,9 @@ void setup() {
 
 //#ifdef DEBUG
     // just for development, to save power
-    leds.clear();
-    leds.show();
-    end(false);
+//    leds.clear();
+//    leds.show();
+//    end(false);
 //#endif
 }
 
