@@ -12,20 +12,19 @@
 #include "HumSound.h"
 
 //#define DEBUG
+//#define GYRO_OPTIONAL
 
 // dma requires pin 4
 constexpr int LED_PIN = 4;
 // currently using 30 leds, not doubled
-constexpr int NUM_LEDS = 30;
+constexpr int NUM_LEDS = 59;
 constexpr int LED_IDX_START = 0;
 constexpr int LED_IDX_MIDDLE = 29;
+constexpr int LED_IDX_END = 58;
 
-constexpr int LED_IDX_END = 29;
 constexpr int AUDIO_PIN = A0;
 
 constexpr int DAC_PRECISION = 10;
-
-constexpr bool GYRO_OPTIONAL = false;
 
 constexpr uint64_t US_PER_SEC = 1000000ull;
 
@@ -176,9 +175,9 @@ void setup() {
     if (!gyro.begin()) {
         gyroInitialized = false;
         Serial.println("Failed to find gyro!");
-        if (!GYRO_OPTIONAL) {
-            end();
-        }
+#ifndef GYRO_OPTIONAL
+        end();
+#endif
     }
     delay(1000);
     Serial.println("Igniting now!");
