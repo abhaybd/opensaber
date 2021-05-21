@@ -38,6 +38,16 @@ constexpr uint8_t baselineBrightness = 128; // unitless, out of 255
 constexpr uint8_t maxBrightness = 255; // unitless, out of 255
 constexpr ulong gyroUpdatePeriod = 50000; // microseconds
 constexpr float maxRotVel = 100; // degrees per second
+float humMaxScaleFactor; // initialized in setup()
+
+float maxScaleFactor(uint size, const uint8_t sound[size]) {
+    if (size == 0) return 1;
+    uint8_t max = sound[0];
+    for (int i = 1; i < size; i++) {
+        if (max < sound[i]) max = sound[i];
+    }
+    return max == 0 ? 1 : 255.0f / static_cast<float>(max);
+}
 
 template<typename T>
 T clamp(T val, T low, T high) {
@@ -131,9 +141,10 @@ void ignite() {
     leds.show();
 }
 
-uint8_t transformAudio(float rotVel, uint8_t sample) {
+uint8_t transformHumAudio(float rotVel, uint8_t sample) {
     auto unbiased = static_cast<float>(sample - 128);
-    float scaled = roundf(unbiased * (1.0f + rotVel / maxRotVel));
+    float scaleFactor = 1.0f + (humMaxScaleFactor - 1.0f) * rotVel / maxRotVel;
+    float scaled = roundf(unbiased * scaleFactor);
     scaled = clamp(scaled, -128.0f, 127.0f);
     return static_cast<uint8_t>(scaled + 128.0f);
 }
@@ -159,7 +170,7 @@ void lightsaberLoop() {
     ulong audioTime = (time - start) % audioLenMicros;
     int soundIdx = static_cast<int>(static_cast<uint64_t>(audioTime) * humSound.freq / US_PER_SEC);
     if (soundIdx != oldSoundIdx) {
-        writeAudio(transformAudio(rotVel, humSound.sound[soundIdx]));
+        writeAudio(transformHumAudio(rotVel, humSound.sound[soundIdx]));
         oldSoundIdx = soundIdx;
     }
 }
@@ -180,6 +191,7 @@ void setup() {
         end();
 #endif
     }
+    humMaxScaleFactor = maxScaleFactor(arrLen(humSound.sound), humSound.sound);
     delay(1000);
     Serial.println("Igniting now!");
     ignite(); // synchronously run the ignition routine
