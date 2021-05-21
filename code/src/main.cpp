@@ -24,6 +24,8 @@ constexpr int LED_IDX_END = 58;
 
 constexpr int AUDIO_PIN = A0;
 
+constexpr int BUTTON_PIN = 3;
+
 constexpr int DAC_PRECISION = 10;
 
 constexpr uint64_t US_PER_SEC = 1000000ull;
@@ -31,14 +33,19 @@ constexpr uint64_t US_PER_SEC = 1000000ull;
 MPU6050_Gyro gyro(false, 0, 2);
 Adafruit_NeoPixel_ZeroDMA leds(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 
-int color = 0xFF0000;
-bool gyroInitialized = false;
-
 constexpr uint8_t baselineBrightness = 128; // unitless, out of 255
 constexpr uint8_t maxBrightness = 255; // unitless, out of 255
 constexpr ulong gyroUpdatePeriod = 50000; // microseconds
 constexpr float maxRotVel = 100; // degrees per second
 float humMaxScaleFactor; // initialized in setup()
+constexpr uint CHANGE_COLOR_DURATION = 100; // ms
+constexpr uint EXTINGUISH_DURATION = 1000; // ms
+const int colors[] = {0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00};
+
+uint8_t colorIndex = 0;
+int color = colors[colorIndex];
+bool gyroInitialized = false;
+ulong buttonPressedTime = millis();
 
 float maxScaleFactor(uint size, const uint8_t sound[size]) {
     if (size == 0) return 1;
@@ -84,6 +91,26 @@ float getRotVel() {
 
 void writeAudio(uint value, int precision = 8) {
     analogWrite(AUDIO_PIN, value << (DAC_PRECISION - precision));
+}
+
+void extinguish() {
+    // disable interrupt while extinguishing
+    detachInterrupt(digitalPinToInterrupt(BUTTON_PIN));
+    // TODO: extinguish lightsaber
+}
+
+void buttonInterrupt() {
+    // pressed = low, released = high
+    if (digitalRead(BUTTON_PIN) == LOW) {
+        buttonPressedTime = millis();
+    } else {
+        ulong elapsed = millis() - buttonPressedTime;
+        if (elapsed >= EXTINGUISH_DURATION) {
+            extinguish();
+        } else if (elapsed >= CHANGE_COLOR_DURATION) {
+            colorIndex = (colorIndex + 1) % arrLen(colors);
+        }
+    }
 }
 
 void ignite() {
@@ -196,6 +223,8 @@ void setup() {
     Serial.println("Igniting now!");
     ignite(); // synchronously run the ignition routine
 
+    attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), buttonInterrupt, CHANGE);
+
 //#ifdef DEBUG
     // just for development, to save power
 //    leds.clear();
@@ -205,5 +234,10 @@ void setup() {
 }
 
 void loop() {
+    if (colors[colorIndex] != color) {
+        color = colors[colorIndex];
+        leds.fill(color);
+        leds.show();
+    }
     lightsaberLoop();
 }
