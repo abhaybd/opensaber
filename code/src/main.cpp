@@ -37,7 +37,7 @@ bool gyroInitialized = false;
 constexpr uint8_t baselineBrightness = 128; // unitless, out of 255
 constexpr uint8_t maxBrightness = 255; // unitless, out of 255
 constexpr ulong gyroUpdatePeriod = 50000; // microseconds
-constexpr float maxRotVel = 400; // degrees per second
+constexpr float maxRotVel = 100; // degrees per second
 
 template<typename T>
 T clamp(T val, T low, T high) {
@@ -149,7 +149,8 @@ void lightsaberLoop() {
         rotVel = clamp(getRotVel(), 0.0f, maxRotVel);
 
         float additionalBrightness = (rotVel / maxRotVel) * (maxBrightness - baselineBrightness);
-        leds.setBrightness(baselineBrightness + static_cast<int>(roundf(additionalBrightness)));
+        uint8_t brightness = baselineBrightness + static_cast<uint8_t>(roundf(additionalBrightness));
+        leds.setBrightness(Adafruit_NeoPixel_ZeroDMA::gamma8(brightness));
         leds.show();
     }
 
