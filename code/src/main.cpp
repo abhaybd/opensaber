@@ -36,7 +36,7 @@ Adafruit_NeoPixel_ZeroDMA leds(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 constexpr uint8_t baselineBrightness = 128; // unitless, out of 255
 constexpr uint8_t maxBrightness = 255; // unitless, out of 255
 constexpr ulong gyroUpdatePeriod = 50000; // microseconds
-constexpr float maxRotVel = 100; // degrees per second
+constexpr float maxRotVel = 200; // degrees per second
 float humMaxScaleFactor; // initialized in setup()
 constexpr uint CHANGE_COLOR_DURATION = 100; // ms
 constexpr uint EXTINGUISH_DURATION = 1000; // ms
@@ -47,7 +47,7 @@ int color = colors[colorIndex];
 bool gyroInitialized = false;
 ulong buttonPressedTime = millis();
 
-float maxScaleFactor(uint size, const uint8_t sound[size]) {
+float maxScaleFactor(uint size, const uint8_t sound[]) {
     if (size == 0) return 1;
     uint8_t max = sound[0];
     for (int i = 1; i < size; i++) {
@@ -223,14 +223,14 @@ void setup() {
     Serial.println("Igniting now!");
     ignite(); // synchronously run the ignition routine
 
-    attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), buttonInterrupt, CHANGE);
+//    attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), buttonInterrupt, CHANGE);
 
 //#ifdef DEBUG
     // just for development, to save power
+//#endif
 //    leds.clear();
 //    leds.show();
 //    end(false);
-//#endif
 }
 
 void loop() {
