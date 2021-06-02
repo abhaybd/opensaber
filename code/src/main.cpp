@@ -42,9 +42,11 @@ constexpr uint CHANGE_COLOR_DURATION = 100; // ms
 constexpr uint EXTINGUISH_DURATION = 1000; // ms
 const int colors[] = {0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00};
 
+// state variables
 uint8_t colorIndex = 0;
 int color = colors[colorIndex];
 bool gyroInitialized = false;
+bool shouldExtinguish = false;
 ulong buttonPressedTime = millis();
 
 float maxScaleFactor(uint size, const uint8_t sound[]) {
@@ -93,6 +95,7 @@ void writeAudio(uint value, int precision = 8) {
     analogWrite(AUDIO_PIN, value << (DAC_PRECISION - precision));
 }
 
+// extinguish and turn off the blade
 void extinguish() {
     // disable interrupt while extinguishing
     detachInterrupt(digitalPinToInterrupt(BUTTON_PIN));
@@ -106,7 +109,7 @@ void buttonInterrupt() {
     } else {
         ulong elapsed = millis() - buttonPressedTime;
         if (elapsed >= EXTINGUISH_DURATION) {
-            extinguish();
+            shouldExtinguish = true;
         } else if (elapsed >= CHANGE_COLOR_DURATION) {
             colorIndex = (colorIndex + 1) % arrLen(colors);
         }
@@ -234,6 +237,11 @@ void setup() {
 }
 
 void loop() {
+    // if necessary, extinguish and then end
+    if (shouldExtinguish) {
+        extinguish();
+        end(false);
+    }
     if (colors[colorIndex] != color) {
         color = colors[colorIndex];
         leds.fill(color);
