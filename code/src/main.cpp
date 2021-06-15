@@ -10,6 +10,7 @@
 // import animation sounds
 #include "IgnitionSound.h"
 #include "HumSound.h"
+#include "Extinguish.h"
 
 //#define DEBUG
 //#define GYRO_OPTIONAL
@@ -39,8 +40,8 @@ constexpr uint8_t maxBrightness = 255; // unitless, out of 255
 constexpr ulong gyroUpdatePeriod = 50000; // microseconds
 constexpr float maxRotVel = 200; // degrees per second
 float humMaxScaleFactor; // initialized in setup()
-constexpr uint CHANGE_COLOR_DURATION = 100; // ms
-constexpr uint EXTINGUISH_DURATION = 1000; // ms
+constexpr uint CHANGE_COLOR_PRESS_DURATION = 1000; // ms
+constexpr uint EXTINGUISH_PRESS_DURATION = 50; // ms
 const int colors[] = {0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00};
 
 // state variables
@@ -50,7 +51,7 @@ bool gyroInitialized = false;
 bool shouldExtinguish = false;
 ulong buttonPressedTime = millis();
 
-template <typename T>
+template<typename T>
 float maxScaleFactor(uint size, const T sound[], float maxVal) {
     if (size == 0) return 1;
     T max = sound[0];
@@ -70,8 +71,20 @@ constexpr uint arrLen(T(&)[size]) {
     return size;
 }
 
+void writeAudio(uint value, int precision) {
+    // shift either left or right as necessary
+    if (precision > DAC_PRECISION) {
+        value >>= precision - DAC_PRECISION;
+    } else if (precision < DAC_PRECISION) {
+        value <<= DAC_PRECISION - precision;
+    }
+    // this method internally masks the 10 LSB, so we don't have to
+    analogWrite(AUDIO_PIN, value);
+}
+
 [[noreturn]] void end(bool flashError = true) {
     leds.clear();
+    writeAudio(0, DAC_PRECISION);
     while (true) {
         if (flashError) {
             int errorColor = 0x800000;
@@ -93,22 +106,61 @@ float getRotVel() {
     return hypotf(rotVel.x, rotVel.z); // we don't care about y rotation, since that's just roll
 }
 
-void writeAudio(uint value, int precision) {
-    // shift either left or right as necessary
-    if (precision > DAC_PRECISION) {
-        value >>= precision - DAC_PRECISION;
-    } else if (precision < DAC_PRECISION) {
-        value <<= DAC_PRECISION - precision;
-    }
-    // this method internally masks the 10 LSB, so we don't have to
-    analogWrite(AUDIO_PIN, value);
-}
-
 // extinguish and turn off the blade
 void extinguish() {
     // disable interrupt while extinguishing
     detachInterrupt(digitalPinToInterrupt(BUTTON_PIN));
-    // TODO: extinguish lightsaber
+
+    // extinguish leds from top to bottom
+    constexpr uint64_t soundLen = arrLen(extinguishSound.sound);
+    uint soundTimeMicros = soundLen * US_PER_SEC / extinguishSound.freq;
+    int soundIdx = -1; // the last sound sample that has been played
+    // these represent the largest and smallest indexes that have not yet been turned off
+    int oldLed1Idx = LED_IDX_MIDDLE; // counts down
+    int oldLed2Idx = LED_IDX_MIDDLE; // counts down
+    ulong time = micros();
+    ulong start = time;
+    constexpr int OFF_COLOR = 0;
+    constexpr uint extinguishTime = extinguishEnd - extinguishStart;
+
+    while (time - start < soundTimeMicros) {
+        uint elapsedTime = time - start;
+        // the intermediate cast to ull is to prevent overflow from multiplication
+        int newSoundIdx = static_cast<int>(static_cast<uint64_t>(elapsedTime) * extinguishSound.freq / US_PER_SEC);
+        if (newSoundIdx > soundIdx) {
+            soundIdx = newSoundIdx;
+            writeAudio(extinguishSound.sound[soundIdx], extinguishSound.precision);
+
+            if (elapsedTime >= extinguishStart) {
+                // write to leds
+                uint elapsedTimeLed = clamp(elapsedTime - extinguishStart, 0u, extinguishTime);
+                // interpolate the elapsed time between the middle and both the start and end
+                int led1Idx = static_cast<int>(
+                        LED_IDX_MIDDLE - ((elapsedTimeLed * (LED_IDX_MIDDLE - LED_IDX_START)) / extinguishTime));
+                int led2Idx = static_cast<int>(
+                        LED_IDX_MIDDLE + ((elapsedTimeLed * (LED_IDX_END - LED_IDX_MIDDLE)) / extinguishTime));
+
+                bool shouldShow = false;
+                // led 1 counts down from MIDDLE
+                while (oldLed1Idx >= led1Idx) {
+                    leds.setPixelColor(oldLed1Idx--, OFF_COLOR);
+                    shouldShow = true;
+                }
+                // led 2 counts up from MIDDLE
+                while (oldLed2Idx <= led2Idx) {
+                    leds.setPixelColor(oldLed2Idx++, OFF_COLOR);
+                    shouldShow = true;
+                }
+                if (shouldShow) {
+                    leds.show();
+                }
+            }
+        }
+        time = micros();
+    }
+
+    leds.clear();
+    leds.show();
 }
 
 void buttonInterrupt() {
@@ -117,10 +169,10 @@ void buttonInterrupt() {
         buttonPressedTime = millis();
     } else {
         ulong elapsed = millis() - buttonPressedTime;
-        if (elapsed >= EXTINGUISH_DURATION) {
-            shouldExtinguish = true;
-        } else if (elapsed >= CHANGE_COLOR_DURATION) {
+        if (elapsed >= CHANGE_COLOR_PRESS_DURATION) {
             colorIndex = (colorIndex + 1) % arrLen(colors);
+        } else if (elapsed >= EXTINGUISH_PRESS_DURATION) {
+            shouldExtinguish = true;
         }
     }
 }
@@ -251,8 +303,10 @@ void setup() {
 }
 
 void loop() {
+    // TODO: get rid of the code that turns off the blade after some time
+    static ulong start = millis();
     // if necessary, extinguish and then end
-    if (shouldExtinguish) {
+    if (shouldExtinguish || (millis() - start) >= 5000) {
         extinguish();
         end(false);
     }
