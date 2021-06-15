@@ -24,5 +24,6 @@ if __name__ == "__main__":
         f.write("#pragma once\n\n")
         f.write("constexpr struct {\n"
                 f"    const uint freq = {audio.rate}; // Hz\n"
+                f"    const uint precision = {bits};"
                 f"    const uint{bits}_t sound[{len(audio.data)}] = {{{sound_str}}};\n"
                 f"}} {name};\n")

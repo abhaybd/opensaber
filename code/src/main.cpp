@@ -49,13 +49,14 @@ bool gyroInitialized = false;
 bool shouldExtinguish = false;
 ulong buttonPressedTime = millis();
 
-float maxScaleFactor(uint size, const uint8_t sound[]) {
+template <typename T>
+float maxScaleFactor(uint size, const T sound[], float maxVal) {
     if (size == 0) return 1;
-    uint8_t max = sound[0];
-    for (int i = 1; i < size; i++) {
+    T max = sound[0];
+    for (uint i = 1; i < size; i++) {
         if (max < sound[i]) max = sound[i];
     }
-    return max == 0 ? 1 : 255.0f / static_cast<float>(max);
+    return max == 0 ? 1 : maxVal / static_cast<float>(max);
 }
 
 template<typename T>
@@ -91,8 +92,15 @@ float getRotVel() {
     return hypotf(rotVel.x, rotVel.z); // we don't care about y rotation, since that's just roll
 }
 
-void writeAudio(uint value, int precision = 8) {
-    analogWrite(AUDIO_PIN, value << (DAC_PRECISION - precision));
+void writeAudio(uint value, int precision) {
+    // shift either left or right as necessary
+    if (precision > DAC_PRECISION) {
+        value >>= precision - DAC_PRECISION;
+    } else if (precision < DAC_PRECISION) {
+        value <<= DAC_PRECISION - precision;
+    }
+    // this method internally masks the 10 LSB, so we don't have to
+    analogWrite(AUDIO_PIN, value);
 }
 
 // extinguish and turn off the blade
@@ -136,7 +144,7 @@ void ignite() {
         if (newSoundIdx > soundIdx) {
             soundIdx = newSoundIdx;
             numPlayed++;
-            writeAudio(ignitionSound.sound[soundIdx]);
+            writeAudio(ignitionSound.sound[soundIdx], ignitionSound.precision);
 
             // write to leds
             uint elapsedTimeLed = clamp(elapsedTime, 0u, igniteTime);
@@ -171,12 +179,15 @@ void ignite() {
     leds.show();
 }
 
-uint8_t transformHumAudio(float rotVel, uint8_t sample) {
-    auto unbiased = static_cast<float>(sample - 128);
+// Scales a given (biased) audio data point relative to the rotVel.
+uint transformHumAudio(float rotVel, uint sample, uint precision) {
+    // convert to unbiased, perform scaling, convert back to biased
+    auto biasF = static_cast<float>(1 << (precision - 1));
+    auto unbiased = static_cast<float>(sample) - biasF;
     float scaleFactor = 1.0f + (humMaxScaleFactor - 1.0f) * rotVel / maxRotVel;
     float scaled = roundf(unbiased * scaleFactor);
-    scaled = clamp(scaled, -128.0f, 127.0f);
-    return static_cast<uint8_t>(scaled + 128.0f);
+    scaled = clamp(scaled, -biasF, biasF - 1);
+    return static_cast<uint>(scaled + biasF);
 }
 
 void lightsaberLoop() {
@@ -200,7 +211,8 @@ void lightsaberLoop() {
     ulong audioTime = (time - start) % audioLenMicros;
     int soundIdx = static_cast<int>(static_cast<uint64_t>(audioTime) * humSound.freq / US_PER_SEC);
     if (soundIdx != oldSoundIdx) {
-        writeAudio(transformHumAudio(rotVel, humSound.sound[soundIdx]));
+        uint val = transformHumAudio(rotVel, humSound.sound[soundIdx], humSound.precision);
+        writeAudio(val, humSound.precision);
         oldSoundIdx = soundIdx;
     }
 }
@@ -221,7 +233,8 @@ void setup() {
         end();
 #endif
     }
-    humMaxScaleFactor = maxScaleFactor(arrLen(humSound.sound), humSound.sound);
+    humMaxScaleFactor = maxScaleFactor(arrLen(humSound.sound), humSound.sound,
+                                       static_cast<float>((1 << humSound.precision) - 1));
     delay(1000);
     Serial.println("Igniting now!");
     ignite(); // synchronously run the ignition routine
