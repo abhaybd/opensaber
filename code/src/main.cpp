@@ -16,7 +16,8 @@
 
 // dma requires pin 4
 constexpr int LED_PIN = 4;
-// currently using 30 leds, not doubled
+
+// 60 LEDS, where the middle of the strip is the tip of the blade, and the ends of the strip is the base
 constexpr int NUM_LEDS = 59;
 constexpr int LED_IDX_START = 0;
 constexpr int LED_IDX_MIDDLE = 29;
