@@ -275,7 +275,7 @@ void setup() {
     while (!Serial); // for debugging
 #endif
     leds.begin();
-    leds.setBrightness(baselineBrightness);
+    leds.setBrightness(Adafruit_NeoPixel_ZeroDMA::gamma8(baselineBrightness));
     leds.clear();
     leds.show();
     gyroInitialized = true;
