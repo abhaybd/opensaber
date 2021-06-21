@@ -45,7 +45,7 @@ The microcontroller sends audio signals using an analog output, which allows it 
 
 First, updating the LEDs is fairly expensive, and would cause the loop time to exceed the maximum allowable period. Second, the library being used for the LEDs, the Adafruit NeoPixel library, suspends interrupts while running. Since all mechanisms to measure time depend on interrupts, the system would have no way of knowing how much time was spent commanding the LEDs, and would therefore mess up all scheduling logic.
 
-The best solution I found through research was to change the LED update mechanism to DMA. DMA, or Direct Memory Access, would essentially repurpose the communication hardware on the microcontroller (such as I2C, SPA, etc.) to instead send signals to the LEDs. Since this communication is handled by the hardware, this would happen completely independently of the CPU, so updating the LEDs would become absolutely free, in terms of CPU time.
+The best solution I found through research was to change the LED update mechanism to DMA. DMA, or Direct Memory Access, would essentially repurpose the communication hardware on the microcontroller (such as I2C, SPI, etc.) to instead send signals to the LEDs. Since this communication is handled by the hardware, this would happen completely independently of the CPU, so updating the LEDs would become absolutely free, in terms of CPU time.
 
 However, an issue was that the communication hardware was already in use, since the gyro uses I2C (a communication protocol) to send data to the microcontroller. The microcontroller can't do both DMA and I2C at the same time, which is obviously a problem.
 
