@@ -24,18 +24,16 @@ Since my 3D printer has a size limitation of <6 inches in each dimension, the hi
 
 I'm not particularly skilled with CAD, so the first draft of the hilt was pretty bad. I highly overestimated the space I had inside the hilt, so I designed hilt to be mostly solid plastic, with mounting points for the electronics. 
 
-<img src="assets/img/hilt-v1.png" alt="Hilt-V1" width="50%" />
+<p align="center">
+    <img src="assets/img/hilt-v1.png" alt="Hilt-V1" width="40%" />
+</p>
 
 As you can see, in the second iteration I tried to mount electronics on the inner walls, resulting in much more space.
 
 <p align="center">
-    <img src="assets/img/hilt-v2.png" alt="Hilt-v2" width="40%" />
-    <img src="assets/img/hilt-v2-full.png" width="40%"/>
+    <img src="assets/img/hilt-v2.png" alt="Hilt-v2" height="250px" width="40%" />
+    <img src="assets/img/hilt-v2-full.png" height="250px" width="40%"/>
 </p>
-
-
-
-
 
 You'll notice that on the bottom of the hilt there's a hole. This was intended for a charging cable, so the lightsaber could be charged by just plugging it in. However, with the amount of wires filling up the inside of the hilt, there was no room for such a thick cable, so that had to be scrapped. As a result, unfortunately, in order to charge the battery, the hilt must be disassembled.
 
