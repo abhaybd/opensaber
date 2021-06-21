@@ -288,25 +288,15 @@ void setup() {
     }
     humMaxScaleFactor = maxScaleFactor(arrLen(humSound.sound), humSound.sound,
                                        static_cast<float>((1 << humSound.precision) - 1));
-    delay(1000);
-    Serial.println("Igniting now!");
     ignite(); // synchronously run the ignition routine
 
-//    attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), buttonInterrupt, CHANGE);
-
-//#ifdef DEBUG
-    // just for development, to save power
-//#endif
-//    leds.clear();
-//    leds.show();
-//    end(false);
+    pinMode(BUTTON_PIN, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), buttonInterrupt, CHANGE);
 }
 
 void loop() {
-    // TODO: get rid of the code that turns off the blade after some time
-    static ulong start = millis();
     // if necessary, extinguish and then end
-    if (shouldExtinguish || (millis() - start) >= 5000) {
+    if (shouldExtinguish) {
         extinguish();
         end(false);
     }
