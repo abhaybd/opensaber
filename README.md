@@ -2,6 +2,12 @@
 
 An LED lightsaber, designed and built from scratch. This project took a while to complete, mostly due to classes and tests, but it's finally done!
 
+<p float="middle">
+    <img src="assets/img/lightsaber-blue.jpg" height="200px"/>
+    <img src="assets/img/lightsaber-red.jpg" height="200px"/>
+    <img src="assets/img/lightsaber-green.jpg" height="200px"/>
+</p>
+
 My goal with this document isn't to analyze every step of the process in building this project, but merely to point out the parts that I found particularly interesting, challenging or fun. Therefore, this probably isn't a proper "postmortem", but rather a "highlights reel", maybe.
 
 ## High-Level Overview
